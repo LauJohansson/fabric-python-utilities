@@ -1,0 +1,6 @@
+## requirements-dev.txt: dependencies for local development.
+
+## pytest is the default package used for testing
+pytest
+pyspark
+setuptools
