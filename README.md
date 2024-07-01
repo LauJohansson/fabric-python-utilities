@@ -61,13 +61,43 @@ The deployment is made as a Azure DevOps Pipeline (.yml). The proposed process:
 
 ## Installation in Microsoft Fabric
 
-**Install the Utilities Wheel in Fabric Notebook**
+Install the Utilities Wheel in Fabric Notebook. 
+
+**Option 1: Default lakehouse**
 
 ```python
 %pip install --force-reinstall /lakehouse/default/Files/PythonUtilities/fabricutilities-1.0-py3-none-any.whl
 
 # Restart
 mssparkutils.session.restartPython()
+
+# Verify Installation
+%pip show fabricutilities
+
+# Import the library
+from company.utilites import dummy_function
+
+```
+
+**Option 2: Non-default lakehouse**
+```python
+import shutil 
+import os 
+from pyspark import SparkFiles 
+
+_wheel_path = "abfss://<workspace-name>@onelake.dfs.fabric.microsoft.com/<lakehousename>.Lakehouse/Files/PythonUtilities/fabricutilities-1.0-py3-none-any.whl" 
+
+sc.addFile(_wheel_path) 
+
+_src_path = SparkFiles.get("fabricutilities-1.0-py3-none-any.whl") 
+
+_target_file_path = mssparkutils.nbResPath + "/builtin/fabricutilities-1.0-py3-none-any.whl" 
+
+os.remove(_target_file_path) 
+
+shutil.move(_src_path, _target_file_path)
+
+%pip install --force-reinstall builtin/fabricutilities-1.0-py3-none-any.whl
 
 # Verify Installation
 %pip show fabricutilities
@@ -89,11 +119,11 @@ Refer to the guide for inline installation of Python packages in Fabric notebook
 
 **Default lakehouse** 
 
-Ensure the utilities lakehouse is set as the default. Installing from a non-default lakehouse has not been successful.
+Ensure the utilities lakehouse is set as the default. Installing from a non-default lakehouse has not been successful, only when copying the wheel into the notebook built-in.
 
 ## Current Isues
 
-* The wheel needs to be located in the default workspace
+* The wheel needs to be located in the default workspace unless you copy the wheel into the built-in notebook path.
 
 * *probably a lot more.....* 
 
