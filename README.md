@@ -3,6 +3,8 @@
 
 This repository contains a collection of utility functions packaged as a Python wheel. It provides a centralized way to share and distribute these utilities across different environments such as development, staging, and production - this repo has in the moment only implementation for single environment setup.
 
+![fabric_utilities_flow](/img/fabric_utilities.svg)
+
 ## Deployment process
 The deployment is made as a Azure DevOps Pipeline (.yml). The proposed process:
 
