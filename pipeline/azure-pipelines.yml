@@ -1,0 +1,53 @@
+trigger: none
+
+pool:
+  vmImage: windows-latest
+
+
+stages:
+  - stage: Deploy-dev
+    variables:
+      - group: dev-group
+    displayName: Getting information from dev
+    jobs:
+      - job: Publish_utilities_to_fabric
+        steps:
+     
+        - checkout: self
+        - script: |
+            python -m pip install --upgrade pip
+            pip install -r requirements_dev.txt
+          displayName: 'Install test requirements'
+
+        - script: |
+            pip install setuptools wheel twine packaging pyclean build
+          displayName: pip install tools
+
+        - script: |
+            pip install .
+          displayName: Install the package
+
+        - script: | 
+            python -m pytest tests/
+          displayName: Run Tests
+
+        - task: PowerShell@2
+          inputs:
+            filePath: './pipeline/build.ps1'
+            displayName: 'Build python'
+
+        - task: AzureCLI@2
+          displayName: 'Copy Python Files'
+          inputs:
+            azureSubscription: your-subscription
+            addSpnToEnvironment: true
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $env:AZCOPY_SPA_CLIENT_SECRET=$env:servicePrincipalKey
+              $env:AZCOPY_AUTO_LOGIN_TYPE="SPN"
+              $env:AZCOPY_SPA_APPLICATION_ID=$env:servicePrincipalId
+              $env:AZCOPY_TENANT_ID=$env:tenantId
+              
+              azcopy login --service-principal  --application-id $env:servicePrincipalId --tenant-id=$env:tenantId --trusted-microsoft-suffixes=onelake.dfs.fabric.microsoft.com
+              ./pipeline/copy-files.ps1 -workingDirectory '$(System.DefaultWorkingDirectory)'
